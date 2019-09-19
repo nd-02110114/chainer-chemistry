@@ -52,7 +52,8 @@ class CGCNNPreprocessor(MolPreprocessor):
         neighbor_features = list()
         all_neighbors = crystal.get_all_neighbors(
             self.max_radius, include_index=True)
-        all_neighbors = [sorted(nbrs, key=lambda x: x[1]) for nbrs in all_neighbors]  # NOQA
+        all_neighbors = [sorted(nbrs, key=lambda x: x[1])
+                         for nbrs in all_neighbors]
 
         for nbrs in all_neighbors:
             nbr_feature_idx = numpy.zeros(
@@ -68,7 +69,6 @@ class CGCNNPreprocessor(MolPreprocessor):
 
         neighbor_indexes = numpy.array(neighbor_indexes)
         neighbor_features = numpy.array(neighbor_features)
-        neighbor_features = self.gdf.expand2D(
-            neighbor_features).astype(numpy.float32)
+        neighbor_features = self.gdf.expand_from_distances(neighbor_features)
 
         return atom_feature, neighbor_features, neighbor_indexes

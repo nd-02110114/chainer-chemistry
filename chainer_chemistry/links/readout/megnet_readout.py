@@ -18,7 +18,7 @@ class MEGNetReadout(chainer.Chain):
         dropout_ratio (float): ratio of dropout
     """
 
-    def __init__(self, out_dim=32, in_channels=32, n_layers=16,
+    def __init__(self, out_dim=32, in_channels=32, n_layers=1,
                  processing_steps=3, dropout_ratio=-1):
         super(MEGNetReadout, self).__init__()
         if processing_steps <= 0:
