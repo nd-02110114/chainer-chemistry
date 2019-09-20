@@ -2,8 +2,7 @@ import numpy
 
 
 class GaussianDistance:
-    """
-    Expand distance with Gaussian basis sit at centers and with width 0.5.
+    """Expand distance with Gaussian basis sit at centers and with width 0.5.
 
     Args:
         centers: (numpy.ndarray)
@@ -22,8 +21,8 @@ class GaussianDistance:
             d (float): distance
 
         Returns
-            expanded_distance (numpy.1darray): M dimension with M the length
-                                               of centers
+            expanded_distance (numpy.1darray):
+                M dimension with M the length of centers
         """
         return numpy.exp(-(d-self.centers)**2 / self.width**2,
                          dtype=numpy.float32)
@@ -38,10 +37,9 @@ class GaussianDistance:
             distances (numpy.ndarray): 1 dimensional array.
 
         Returns
-            expanded_distances (numpy.ndarray): 2 dimensional array. First axis
-                                                size is the number of distance,
-                                                Second axis size is M dimension
-                                                with M the length of centers
+            expanded_distances (numpy.ndarray): 2 dimensional array.
+                First axis size is the number of distance,
+                Second axis size is M dimension with M the length of centers
         """
         return numpy.exp(-(distances[..., numpy.newaxis] - self.centers)**2
                          / self.width**2, dtype=numpy.float32)

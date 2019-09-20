@@ -145,9 +145,10 @@ def construct_atom_feature(mol, use_all_feature, atom_list=None,
             If True, even the atom is not in `atom_list`, `atom_type` is set
             as "unknown" atom.
 
-    Returns (numpy.ndarray): 2 dimensional array. First axis size is
-        `num_max_atoms`, representing each atom index.
-        Second axis for feature.
+    Returns:
+        atom_feature (numpy.ndarray): 2 dimensional array.
+            First axis size is `num_max_atoms`, representing each atom index.
+            Second axis size is each atom feature dimension.
 
     """
     num_max_atoms = mol.GetNumAtoms()
@@ -165,7 +166,6 @@ def construct_atom_feature(mol, use_all_feature, atom_list=None,
     aromaticity_vec = construct_aromaticity_vec(
         mol, num_max_atoms=num_max_atoms)
 
-    # stack all vector
     if use_all_feature:
         feature = numpy.hstack((atom_type_vec, atom_chirality_vec,
                                 atom_ring_vec, hybridization_vec,
@@ -246,13 +246,13 @@ def construct_pair_feature(mol, use_all_feature):
             If False, a part of pair features is extracted.
             You can confirm the detail in the paper.
 
-    Returns
-        features (numpy.ndarray): 2 dimensional array. First axis size is
-                                  the number of the bond, Second axis size
-                                  is the number of the feature.
-        bond_idx (numpy.ndarray): 2 dimensional array. First axis size is
-                                  the number of the bond, Second axis size is
-                                  the tuple(StartNodeIdx, EndNodeIdx).
+    Returns:
+        features (numpy.ndarray): 2 dimensional array.
+            First axis size is the number of the bond.
+            Second axis size is each pair feature dimension.
+        bond_idx (numpy.ndarray): 2 dimensional array.
+            First axis size is the number of the bond.
+            Second axis represents tuple(StartNodeIdx, EndNodeIdx).
     """
     converter = GaussianDistance()
 
@@ -306,8 +306,8 @@ def construct_global_state_feature(mol):
     Args:
         mol (Mol): mol instance
 
-    Returns (numpy.ndarray): 1 dimensional array.
-
+    Returns:
+        feature (numpy.ndarray): 1 dimensional array
     """
     n_atom = mol.GetNumAtoms()
     ave_mol_wt = Descriptors.MolWt(mol) / n_atom
@@ -317,11 +317,7 @@ def construct_global_state_feature(mol):
 
 
 class MEGNetPreprocessor(MolPreprocessor):
-
     """MEGNetPreprocessor
-
-     MEGNet must have fixed-size atom list for now, zero_padding option
-     is always set to True.
 
     Args:
     For Molecule
@@ -346,7 +342,7 @@ class MEGNetPreprocessor(MolPreprocessor):
     For Crystal
         max_neighbors (int): Max number of atom considered as neighbors
         max_radius (float): Cutoff radius (angstrom)
-        expand_dim (int): dimension converting from distance to vector
+        expand_dim (int): Dimension converting from distance to vector
     """
 
     def __init__(self, max_atoms=-1, add_Hs=True,
@@ -369,10 +365,8 @@ class MEGNetPreprocessor(MolPreprocessor):
     def get_input_features(self, mol):
         """get input features from mol object
 
-        MEGNetPreprocessor automatically add `H` to `mol`
-
         Args:
-            mol (Mol):
+           mol (Mol):
 
         """
         type_check_num_atoms(mol, self.max_atoms)
@@ -385,25 +379,25 @@ class MEGNetPreprocessor(MolPreprocessor):
         global_feature = construct_global_state_feature(mol)
         return atom_feature, pair_feature, global_feature, bond_idx
 
-    def get_input_feature_from_crystal(self, crystal):
-        """get input features from crystal object
+    def get_input_feature_from_crystal(self, structure):
+        """get input features from structure object
 
         Args:
-            crystal (Crystal):
+            structure (Structure):
 
         """
-        atom_num = len(crystal)
+        atom_num = len(structure)
         atom_feature = numpy.zeros(
             (atom_num, MAX_ATOM_ELEMENT), dtype=numpy.float32)
         for i in range(atom_num):
-            if crystal[i].specie.number < MAX_ATOM_ELEMENT:
-                atom_feature[i][crystal[i].specie.number] = 1
+            if structure[i].specie.number < MAX_ATOM_ELEMENT:
+                atom_feature[i][structure[i].specie.number] = 1
 
-        # get edge feture vector & bond idx
+        # get edge feature vector & bond idx
         neighbor_indexes = []
         neighbor_features = []
-        all_neighbors = crystal.get_all_neighbors(self.max_radius,
-                                                  include_index=True)
+        all_neighbors = structure.get_all_neighbors(self.max_radius,
+                                                    include_index=True)
         all_neighbors = [sorted(nbrs, key=lambda x: x[1])
                          for nbrs in all_neighbors]
         bond_num = len(all_neighbors)
@@ -426,7 +420,6 @@ class MEGNetPreprocessor(MolPreprocessor):
         pair_feature = numpy.array(neighbor_features)
         pair_feature = self.gdf.expand_from_distances(
             pair_feature).reshape(-1, self.expand_dim)
-        # get global feature vector
         global_feature = numpy.array([0, 0], dtype=numpy.float32)
 
         return atom_feature, pair_feature, global_feature, bond_idx
