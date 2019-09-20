@@ -2,7 +2,7 @@ import chainer
 from chainer import functions, links
 
 
-from chainer_chemistry.functions import improved_softplus
+from chainer_chemistry.functions import megnet_softplus
 from chainer_chemistry.links.readout.set2set import Set2Set
 
 
@@ -50,5 +50,5 @@ class MEGNetReadout(chainer.Chain):
         h = functions.concat((a_f_r, p_f_r, g_f), axis=1)
         if self.dropout_ratio > 0.0:
             h = functions.dropout(h, ratio=self.dropout_ratio)
-        out = improved_softplus(self.linear(h))
+        out = megnet_softplus(self.linear(h))
         return out
